@@ -3,21 +3,28 @@ using UnityEngine;
 public class ChessBoard : MonoBehaviour
 {
 
-   //tells the unity engine to save/restore it's state to/from disk
+   //Tells the unity engine to save/restore it's state to/from disk
   [Header("Art")]
   [SerializeField] private Material tileMat;
   [SerializeField] private float tileSize = 1.0f;
   [SerializeField] private float Yoffset = 0.2f;
   [SerializeField] private Vector3 boardCenter = Vector3.zero;
 
+  [Header("Prefabs & Materials")]
+  [SerializeField] private GameObject[] prefabs;
+  //[SerializeField] private Material[] pieceColorMaterial;
+
   //Game Logic
   private GameObject[,] tiles;
   private Camera currCam;
   private Vector2Int currHover;
   private Vector3 bounds;
+  private ChessPiece[,] chessPieces;
 
   void Awake() {
     generateTiles(tileSize, 8, 8);
+    spawnPieces();
+    positionPieces();
   }
 
   private void Update() {
@@ -112,4 +119,66 @@ public class ChessBoard : MonoBehaviour
 
     return -Vector2Int.one; // returns -1 -1 *ERROR*
   }
+  //Spawning all the chess pieces
+  private void spawnPieces() {
+
+    chessPieces = new ChessPiece[8, 8]; //creating 64 pieces but most of them will be NULL
+
+    //Spawning the white pieces
+    chessPieces[0,0] = spawnPiece(pieceType.wRook);
+    chessPieces[1,0] = spawnPiece(pieceType.wKnight);
+    chessPieces[2,0] = spawnPiece(pieceType.wBishop);
+    chessPieces[3,0] = spawnPiece(pieceType.wKing);
+    chessPieces[4,0] = spawnPiece(pieceType.wQueen);
+    chessPieces[5,0] = spawnPiece(pieceType.wBishop);
+    chessPieces[6,0] = spawnPiece(pieceType.wKnight);
+    chessPieces[7,0] = spawnPiece(pieceType.wRook);
+
+    for(int i = 0; i < 8; i++)
+      chessPieces[i,1] = spawnPiece(pieceType.wPawn);
+
+    //Spawning the black pieces
+    chessPieces[0,7] = spawnPiece(pieceType.bRook);
+    chessPieces[1,7] = spawnPiece(pieceType.bKnight);
+    chessPieces[2,7] = spawnPiece(pieceType.bBishop);
+    chessPieces[3,7] = spawnPiece(pieceType.bQueen);
+    chessPieces[4,7] = spawnPiece(pieceType.bKing);
+    chessPieces[5,7] = spawnPiece(pieceType.bBishop);
+    chessPieces[6,7] = spawnPiece(pieceType.bKnight);
+    chessPieces[7,7] = spawnPiece(pieceType.bRook);
+
+    for(int i = 0; i < 8; i++)
+      chessPieces[i,6] = spawnPiece(pieceType.bPawn);
+
+  }
+  //Spawning one chess piece
+  private ChessPiece spawnPiece(pieceType type) {
+    ChessPiece cP = Instantiate(prefabs[(int)type - 1], transform).GetComponent<ChessPiece>();
+    cP.type = type;
+    return cP;
+  }
+
+  private void positionPieces() {
+    for(int i = 0; i < 8; i++)
+      for(int j = 0; j < 8; j++)
+        if(chessPieces[i,j] != null)
+          positionPiece(i, j, true);
+  }
+
+  private void positionPiece(int pieceX, int pieceY, bool f = false) { //defaluting f (force) to false so when we move we dont just teleport but actually move
+    chessPieces[pieceX, pieceY].currX = pieceX;
+    chessPieces[pieceX, pieceY].currY = pieceY;
+    chessPieces[pieceX, pieceY].transform.position = new Vector3(pieceX * tileSize, Yoffset, pieceY * tileSize) - bounds + new Vector3(tileSize / 2, 0, tileSize / 2); //sets it to the tile center
+  }
 }
+
+
+
+
+
+
+
+
+
+
+
